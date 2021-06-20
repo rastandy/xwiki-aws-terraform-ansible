@@ -1,0 +1,140 @@
+---
+- hosts: all
+  remote_user: root
+  become: yes
+
+  vars_files:
+    - defaults.yml
+
+  pre_tasks:
+    - include_vars: "{{ item }}"
+      with_first_found:
+        - "host_vars/{{ inventory_hostname }}"
+        - "host_vars/default"
+      tags: [letsencrypt, postfix]
+
+    - include_vars: derived_vars.yml
+      tags: [letsencrypt, postfix]
+
+    - include_tasks: setup-permanent-volume.yml
+
+    - name: Set the hostname
+      hostname: name="{{ servername }}"
+
+    - name: Add hostname in the hosts file
+      lineinfile:
+        path: /etc/hosts
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      with_items:
+        - { regexp: '^127.0.0.1 ', line: '127.0.0.1 localhost {{ servername }}' }
+        - { regexp: '^::1 ', line: '::1 ip6-localhost ip6-loopback {{ servername }}' }
+
+    - name: Ensure "postfix" user exists
+      apt: name=postfix state=present
+      when: xwiki_postfix_service
+      tags: postfix
+
+    - name: Set SSL certs path
+      set_fact:
+        xwiki_certificate_file: "/etc/letsencrypt/live/{{servername}}/fullchain.pem"
+        xwiki_certificate_key_file: "/etc/letsencrypt/live/{{servername}}/privkey.pem"
+        xwiki_certificate_chain_file: "/etc/letsencrypt/live/{{servername}}/chain.pem"
+      when: not xwiki_debug
+      tags: [letsencrypt, postfix]
+
+    - name: Set SSL certs path
+      set_fact:
+        xwiki_certificate_file: "/etc/ssl/certs/ssl-cert-snakeoil.pem"
+        xwiki_certificate_key_file: "/etc/ssl/private/ssl-cert-snakeoil.key"
+        xwiki_certificate_chain_file: "/etc/ssl/certs/ssl-cert-snakeoil.pem"
+      when: xwiki_debug
+      tags: postfix
+
+  roles:
+    - role: rastandy.libreoffice-server
+      libreoffice_user: "{{ xwiki_user }}"
+      libreoffice_group: "{{ xwiki_group }}"
+      libreoffice_user_home: "{{ xwiki_environment_permanent_directory }}"
+      when: xwiki_libreoffice_service
+
+    # SSL certificate for the web server
+    - role: geerlingguy.certbot
+      certbot_admin_email: "{{ administrator_email }}"
+      certbot_create_if_missing: yes
+      certbot_create_standalone_stop_services: [apache2]
+      certbot_certs:
+        - domains:
+            - "{{ servername }}"
+      certbot_auto_renew: true
+      certbot_auto_renew_user: root
+      certbot_auto_renew_hour: 3
+      certbot_auto_renew_minute: 30
+      certbot_auto_renew_options: "--no-self-upgrade"
+      when: (xwiki_apache_service or xwiki_postfix_service) and not xwiki_debug
+      tags: letsencrypt
+
+    - role: rastandy.apache
+      apache_remove_default_vhost: true
+      apache_mods_enabled:
+        - proxy.load
+        - ssl.load
+        - proxy_ajp.load
+        - rewrite.load
+        # - deflate.load
+        # - expires.load
+      apache_global_vhost_settings: |
+        SSLProxyEngine on
+      apache_vhosts:
+        - servername: "{{ servername }}"
+          documentroot: "{{ apache_doument_root }}"
+          extra_parameters: |
+            RewriteEngine  on
+            RewriteCond %{REQUEST_FILENAME} !^/robots\.txt
+            RewriteRule ^(.*) https://{{ servername }}$1 [R]
+      apache_vhosts_ssl:
+        - servername: "{{ servername }}"
+          documentroot: "{{ apache_doument_root }}"
+          certificate_file: "{{ xwiki_certificate_file }}"
+          certificate_key_file: "{{ xwiki_certificate_key_file }}"
+          certificate_chain_file: "{{ xwiki_certificate_chain_file }}"
+          extra_parameters: |
+            # ssl_protocols       TLSv1.1 TLSv1.2;
+            # ssl_ciphers         HIGH:!aNULL:!MD5;
+            # Rewrite rules
+            RewriteEngine  on
+            RewriteCond %{REQUEST_FILENAME} "!^/robots\.txt"
+            RewriteCond %{REQUEST_FILENAME} "!^/xwiki"
+            RewriteRule "^/(.*)" /{{ xwiki_webapppath }}/$1 [R]
+            # RedirectMatch /^robots.txt https://{{ servername }}/{{ xwiki_webapppath }}
+            # RedirectMatch permanent ^/(.*)$ https://{{ servername }}/{{ xwiki_webapppath }}/$1
+            AllowEncodedSlashes On
+            TimeOut 600
+            ProxyRequests   Off
+            ProxyPreserveHost On
+            ProxyPass /xwiki ajp://localhost:18009/xwiki nocanon
+            ProxyPassReverse /xwiki ajp://localhost:18009/xwiki nocanon
+      when: xwiki_apache_service
+
+    - role: rastandy.postfix
+      postfix_mydestination: "localhost.localdomain, localhost, {{ ansible_hostname }}, {{ servername }}"
+      postfix_inet_interfaces: "127.0.0.1"
+      postfix_inet_protocols: "ipv4"
+      postfix_tls_cert_file: "{{ xwiki_certificate_file }}"
+      postfix_tls_key_file: "{{ xwiki_certificate_key_file }}"
+      when: xwiki_postfix_service
+      tags: postfix
+
+    - role: bennojoy.ntp
+
+  tasks:
+    - include_tasks: ./configure.yml
+
+  handlers:
+    - name: Restart tomcat-xwiki
+      service:
+        name: "{{ tomcat_version }}"
+        state: restarted
+
+    - name: New mail aliases
+      command: /usr/bin/newaliases

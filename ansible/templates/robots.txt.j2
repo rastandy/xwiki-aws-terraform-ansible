@@ -1,0 +1,74 @@
+User-agent: *
+# Prevent bots from executing all actions except "view" since:
+# 1) we don't want bots to execute stuff in the wiki!
+# 2) we don't want bots to consume CPU and memory
+# (for example to perform exports)
+# Note: You may want to allow /download/ if you wish to have
+# attachments indexed.
+Disallow: /{{ xwiki_webapppath }}/bin/viewattachrev/
+Disallow: /{{ xwiki_webapppath }}/bin/viewrev/
+Disallow: /{{ xwiki_webapppath }}/bin/pdf/
+Disallow: /{{ xwiki_webapppath }}/bin/tex/
+Disallow: /{{ xwiki_webapppath }}/bin/edit/
+Disallow: /{{ xwiki_webapppath }}/bin/create/
+Disallow: /{{ xwiki_webapppath }}/bin/inline/
+Disallow: /{{ xwiki_webapppath }}/bin/preview/
+Disallow: /{{ xwiki_webapppath }}/bin/save/
+Disallow: /{{ xwiki_webapppath }}/bin/saveandcontinue/
+Disallow: /{{ xwiki_webapppath }}/bin/rollback/
+Disallow: /{{ xwiki_webapppath }}/bin/deleteversions/
+Disallow: /{{ xwiki_webapppath }}/bin/cancel/
+Disallow: /{{ xwiki_webapppath }}/bin/delete/
+Disallow: /{{ xwiki_webapppath }}/bin/deletespace/
+Disallow: /{{ xwiki_webapppath }}/bin/undelete/
+Disallow: /{{ xwiki_webapppath }}/bin/reset/
+Disallow: /{{ xwiki_webapppath }}/bin/register/
+Disallow: /{{ xwiki_webapppath }}/bin/propupdate/
+Disallow: /{{ xwiki_webapppath }}/bin/propadd/
+Disallow: /{{ xwiki_webapppath }}/bin/propdisable/
+Disallow: /{{ xwiki_webapppath }}/bin/propenable/
+Disallow: /{{ xwiki_webapppath }}/bin/propdelete/
+Disallow: /{{ xwiki_webapppath }}/bin/objectadd/
+Disallow: /{{ xwiki_webapppath }}/bin/commentadd/
+Disallow: /{{ xwiki_webapppath }}/bin/commentsave/
+Disallow: /{{ xwiki_webapppath }}/bin/objectsync/
+Disallow: /{{ xwiki_webapppath }}/bin/objectremove/
+Disallow: /{{ xwiki_webapppath }}/bin/attach/
+Disallow: /{{ xwiki_webapppath }}/bin/upload/
+Disallow: /{{ xwiki_webapppath }}/bin/download/
+Disallow: /{{ xwiki_webapppath }}/bin/temp/
+Disallow: /{{ xwiki_webapppath }}/bin/downloadrev/
+Disallow: /{{ xwiki_webapppath }}/bin/dot/
+Disallow: /{{ xwiki_webapppath }}/bin/svg/
+Disallow: /{{ xwiki_webapppath }}/bin/delattachment/
+Disallow: /{{ xwiki_webapppath }}/bin/skin/
+Disallow: /{{ xwiki_webapppath }}/bin/jsx/
+Disallow: /{{ xwiki_webapppath }}/bin/ssx/
+Disallow: /{{ xwiki_webapppath }}/bin/login/
+Disallow: /{{ xwiki_webapppath }}/bin/loginsubmit/
+Disallow: /{{ xwiki_webapppath }}/bin/loginerror/
+Disallow: /{{ xwiki_webapppath }}/bin/logout/
+Disallow: /{{ xwiki_webapppath }}/bin/charting/
+Disallow: /{{ xwiki_webapppath }}/bin/lock/
+Disallow: /{{ xwiki_webapppath }}/bin/redirect/
+Disallow: /{{ xwiki_webapppath }}/bin/admin/
+Disallow: /{{ xwiki_webapppath }}/bin/export/
+Disallow: /{{ xwiki_webapppath }}/bin/import/
+Disallow: /{{ xwiki_webapppath }}/bin/get/
+Disallow: /{{ xwiki_webapppath }}/bin/distribution/
+Disallow: /{{ xwiki_webapppath }}/bin/imagecaptcha/
+Disallow: /{{ xwiki_webapppath }}/bin/unknown/
+Disallow: /{{ xwiki_webapppath }}/bin/webjars/
+# Don't index sandbox content since it's sample content
+Disallow: /{{ xwiki_webapppath }}/bin/view/Sandbox/
+# Don't index Admin space since it contains Admin stuff. 
+# Note that the Admin space is protected by permissions 
+# anyway but this acts as a safety net to not have private 
+# info leaked on the internet ;)
+Disallow: /{{ xwiki_webapppath }}/bin/view/Admin/
+# Don't index Stats data (just because it's not useful and
+# those pages are a bit CPU intensive)
+Disallow: /{{ xwiki_webapppath }}/bin/view/Stats/
+# Don't index Panels data (because we don't want it 
+# indexed on the internet)
+Disallow: /{{ xwiki_webapppath }}/bin/view/Panels/

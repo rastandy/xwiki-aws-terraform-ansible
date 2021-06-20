@@ -1,0 +1,14 @@
+---
+- src: https://github.com/rastandy/ansible-role-apache
+  name: rastandy.apache
+
+- src: https://github.com/rastandy/ansible-role-certbot
+  name: geerlingguy.certbot
+
+- src: https://github.com/rastandy/postfix
+  name: rastandy.postfix
+
+- src: https://github.com/rastandy/libreoffice-server-ansible-role
+  name: rastandy.libreoffice-server
+
+- src: bennojoy.ntp

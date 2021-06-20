@@ -1,0 +1,13 @@
+.vagrant/
+sshuttle.subnets
+inventory
+pg_dump.sh
+pg_restore.sh
+*.pg_dump
+data/
+.sass-cache/
+riemann-dash/
+roles/
+host_vars/xwiki
+terraform.tfstate*
+.terraform/

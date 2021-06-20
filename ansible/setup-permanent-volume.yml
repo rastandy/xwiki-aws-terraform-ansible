@@ -1,0 +1,22 @@
+---
+- name: Prepare filesystem for the XWiki permanent directory volume
+  filesystem:
+    fstype: ext4
+    dev: "{{ xwiki_permanent_directory_volume }}"
+
+- name: Mount the XWiki permanent directory volume
+  mount:
+    path: "{{ xwiki_environment_permanent_directory }}"
+    src: "{{ xwiki_permanent_directory_volume }}"
+    fstype: ext4
+    opts: defaults
+    state: mounted
+
+# Putted from configure.yml in pre-role tasks because libreoffice-server needs
+# write access to this directory to start the service correctly.
+- name: Write access for XWiki files in the permanentDirectory to the Tomcat user
+  file:
+    path: "{{ xwiki_environment_permanent_directory }}"
+    owner: "{{ xwiki_user }}"
+    group: "{{ xwiki_group }}"
+    mode: "u=rwx,g=rx,o-rwx"

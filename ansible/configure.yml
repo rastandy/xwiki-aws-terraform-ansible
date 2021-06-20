@@ -1,0 +1,135 @@
+---
+- name: Configure JVM Tomcat options for XWiki
+  lineinfile:
+    path: "/etc/default/{{ tomcat_version }}"
+    regexp: "^JAVA_OPTS="
+    line: "JAVA_OPTS=\"{{ xwiki_catalina_opts }}\""
+    state: present
+  notify: Restart tomcat-xwiki
+
+- name: Configure Tomcat AJP connector for XWiki
+  lineinfile:
+    path: "{{ xwiki_tomcat_config_path }}/server.xml"
+    insertafter: "<Service name=\"Catalina\">"
+    line: "    <Connector port=\"18009\" protocol=\"AJP/1.3\" redirectPort=\"18443\" />"
+    state: present
+  notify: Restart tomcat-xwiki
+
+- name: Download PostgreSQL JDBC Driver and install in Tomcat
+  get_url:
+    url: "{{ postgresql_jdbc_driver_url }}"
+    dest: "/usr/share/{{ tomcat_version }}/lib/{{ postgresql_jdbc_driver_filename }}"
+    sha256sum: "{{ postgresql_jdbc_driver_sha256sum }}"
+  notify: Restart tomcat-xwiki
+
+- name: Configure PostgreSQL database connection for XWiki
+  template:
+    src: templates/hibernate.cfg.xml.j2
+    dest: "{{ xwiki_config_path }}/hibernate.cfg.xml"
+    owner: root
+    group: "{{ xwiki_group }}"
+    mode: "u=rw,g=r,o-rwx"
+  notify: Restart tomcat-xwiki
+
+- name: Create XWiki local maven repository for custom extensions
+  file:
+    path: "{{ xwiki_environment_permanent_directory }}maven-repository"
+    state: directory
+    owner: "{{ xwiki_user }}"
+    group: "{{ xwiki_group }}"
+
+- name: Download clojure and the clojure JSR 223 compatibility library
+  get_url:
+    url: "{{ item.url }}"
+    dest: "/usr/lib/xwiki/WEB-INF/lib/{{ item.filename }}"
+    checksum: "sha256:{{ item.checksum }}"
+  with_items:
+    - url: "{{ xwiki_clojure_download_url }}"
+      checksum: "{{ xwiki_clojure_sha256sum }}"
+      filename: "{{ xwiki_clojure_filename }}"
+    - url: "{{ xwiki_clojure_jsr223_download_url }}"
+      checksum: "{{ xwiki_clojure_jsr223_sha256sum }}"
+      filename: "{{ xwiki_clojure_jsr223_filename }}"
+  when: xwiki_colojure_scripting
+  notify: Restart tomcat-xwiki
+
+- name: Download the ExcelPlugin XWiki plugin and the jxl jar
+  get_url:
+    url: "{{ item.url }}"
+    dest: "/usr/lib/xwiki/WEB-INF/lib/{{ item.filename }}"
+    checksum: "sha256:{{ item.checksum }}"
+  with_items:
+    - url: "{{ xwiki_plugin_excelplugin_url }}"
+      checksum: "{{ xwiki_plugin_excelplugin_sha256sum }}"
+      filename: "{{ xwiki_plugin_excelplugin_filename }}"
+    - url: "{{ xwiki_lib_jxl_url }}"
+      checksum: "{{ xwiki_lib_jxl_sha256sum }}"
+      filename: "{{ xwiki_lib_jxl_filename }}"
+  when: xwiki_plugin_excel
+  notify: Restart tomcat-xwiki
+
+# - name: Generate random xwiki.authentication.validationKey
+#   command: openssl rand -base64 32
+#   register: validationKey
+
+# - name: Generate random xwiki.authentication.encryptionKey
+#   command: openssl rand -base64 32
+#   register: encryptionKey
+
+- name: Configure Xwiki (properties file)
+  template:
+    src: templates/xwiki.properties.j2
+    dest: "{{ xwiki_config_path }}/xwiki.properties"
+    owner: root
+    group: "{{ xwiki_group }}"
+    mode: "u=rw,g=r,o-rwx"
+  notify: Restart tomcat-xwiki
+
+- name: Configure Xwiki (cfg file)
+  template:
+    src: templates/xwiki.cfg.j2
+    dest: "{{ xwiki_config_path }}/xwiki.cfg"
+    owner: root
+    group: "{{ xwiki_group }}"
+    mode: "u=rw,g=r,o-rwx"
+  notify: Restart tomcat-xwiki
+
+- name: Install the robots.txt file for XWiki
+  template:
+    src: templates/robots.txt.j2
+    dest: "{{ apache_doument_root }}/robots.txt"
+    owner: root
+    group: "{{ xwiki_group }}"
+    mode: "u=rw,g=r,o+r"
+
+- name: Make missing links from XWiki configuration path to install path
+  file:
+    src: "{{ xwiki_config_path }}/{{ item }}"
+    dest: "{{ xwiki_install_path }}/WEB-INF/{{ item }}"
+    owner: root
+    group: "{{ xwiki_group }}"
+    mode: "u=rw,g=r,o-rwx"
+    state: link
+  with_items:
+    - hibernate.cfg.xml
+    - xwiki.cfg
+    - xwiki.properties
+
+- name: Read access for XWiki config files to the Tomcat user
+  file:
+    path: "{{ xwiki_config_path }}"
+    owner: root
+    group: "{{ xwiki_group }}"
+    mode: "u=rwx,g=rx,o-rwx"
+
+- name: Set (httpd_can_network_connect) flag on and keep it persistent across reboots
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
+  when: xwiki_apache_service and ansible_selinux.status == "enabled"
+
+# - name: Allow access to XWiki Tomcat instance only to the XWiki user
+#   file: path="{{xwiki_tomcat_path}}" owner="{{xwiki_user}}" group="{{xwiki_user}}" mode=0770
+
+- name: Ensure operators receive local root emails
+  lineinfile: "dest=/etc/aliases regexp='^root: ' line='root: {{ administrator_email }}' state=present"
+  notify: New mail aliases
+  when: xwiki_postfix_service

@@ -1,0 +1,57 @@
+---
+# defaults file for xwiki
+xwiki_debug: false
+
+# Create a swap file on EC2 instances
+swap_file_path: /swapfile
+swap_file_size_mb: 1024 # 1Gb of swap
+
+java_version: openjdk-11-jre
+tomcat_version: tomcat8
+xwiki_version: 12.10.8
+
+xwiki_user: "{{ tomcat_version }}"
+xwiki_group: "{{ tomcat_version }}"
+
+xwiki_config_path: "/etc/xwiki"
+xwiki_install_path: "/usr/lib/xwiki"
+xwiki_webapppath: xwiki
+xwiki_tomcat_memory: 1480m
+
+apache_doument_root: "/var/www/html"
+
+xwiki_tomcat_config_path: "/etc/{{ tomcat_version }}"
+xwiki_tomcat_path: "/var/lib/{{ tomcat_version }}"
+
+# xwiki_validation_key: "PLEASE CHANGE ME AS SOON AS YOU CAN"
+# xwiki_encryption_key: "PLEASE CHANGE ME AS SOON AS YOU CAN"
+
+# Choose if attachments will be stored in the database (option: hibernate)
+# or on fileysistem (option: file)
+xwiki_store_attachment_hint: file
+
+# environment.permanentDirectory where persistent data is stored
+xwiki_environment_permanent_directory: "/var/lib/xwiki/data/"
+xwiki_permanent_directory_volume: "/dev/xvdh"
+
+postgresql_jdbc_driver_version: "42.2.1"
+postgresql_jdbc_driver_sha256sum: d800ad754c7265b3bc06425d3ea0059a2a3226527226cecfd459f74b0be7d6ed
+
+xwiki_clojure_version: 1.8.0
+xwiki_clojure_filename: "clojure-{{ xwiki_clojure_version }}.jar"
+xwiki_clojure_download_url: "http://search.maven.org/remotecontent?filepath=org/clojure/clojure/{{ xwiki_clojure_version }}/{{ xwiki_clojure_filename }}"
+xwiki_clojure_sha256sum: 061a7f1fe4f1a6c68852a1e2f407966e9058feb0d77c870f0725e7606fd360a8
+
+xwiki_clojure_jsr223_version: "v-0.1.0"
+xwiki_clojure_jsr223_filename: "clj-jsr223.jar"
+xwiki_clojure_jsr223_download_url: "https://github.com/rastandy/clj-jsr223/releases/download/{{ xwiki_clojure_jsr223_version }}/{{ xwiki_clojure_jsr223_filename }}"
+xwiki_clojure_jsr223_sha256sum: b7eab1434f278c9282413c947fbddd4b363602369e17d599c44cefee2fda2847
+
+xwiki_plugin_excel: false
+xwiki_plugin_excelplugin_filename: "org.xwiki.contrib-xwiki-plugin-excel-1.1.jar"
+xwiki_plugin_excelplugin_url: "http://extensions.xwiki.org/xwiki/rest/repository/extensions/org.xwiki.contrib%3Axwiki-plugin-excel/versions/1.1/file?rid=maven-xwiki"
+xwiki_plugin_excelplugin_sha256sum: 4135a549c30d9959eb0ccec697b35442153709658af0ae4beb93191947d85c9d
+
+xwiki_lib_jxl_filename: "jxl-2.6.12.jar"
+xwiki_lib_jxl_url: "http://central.maven.org/maven2/net/sourceforge/jexcelapi/jxl/2.6.12/jxl-2.6.12.jar"
+xwiki_lib_jxl_sha256sum: c5c53645ab751288398f30adaec5551879c5ee334d4862ea77b25a386646621c

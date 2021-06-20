@@ -1,0 +1,83 @@
+---
+- hosts: all
+
+  vars_files:
+    - defaults.yml
+
+  pre_tasks:
+    - include_vars: "{{ item }}"
+      with_first_found:
+        - "host_vars/{{ inventory_hostname }}"
+        - "host_vars/default"
+
+    - include_vars: derived_vars.yml
+
+  tasks:
+    - name: Setup a swapfile for the instance
+      include_tasks: ./swapfile.yml
+
+    - name: Add the Apt signing key from xwiki.org
+      apt_key:
+        url: https://maven.xwiki.org/public.gpg
+        state: present
+
+    - name: Add the xwiki.org repository into sources list.
+      apt_repository:
+        repo: deb http://maven.xwiki.org lts/
+        state: present
+
+    # # Bypass bug in Tomcat8 discussed here:
+    # # https://forum.xwiki.org/t/code-macro-requirements/909/23
+    # # and here:
+    # # https://bugs.launchpad.net/ubuntu/+source/tomcat8/+bug/1644144
+    # - name: Add repo for a different Tomcat8 because of ClassLoader bug in standard tomcat8 in Ubuntu 16.04
+    #   apt_repository:
+    #     repo: 'ppa:nacc/tomcat8v2'
+    #     state: present
+
+    # # Bypass bug in Tomcat8 discussed here:
+    # # https://forum.xwiki.org/t/code-macro-requirements/909/23
+    # # and here:
+    # # https://bugs.launchpad.net/ubuntu/+source/tomcat8/+bug/1644144
+    # - name: Install a different Tomcat8 because of ClassLoader bug in standard tomcat8 in Ubuntu 16.04
+    #   apt:
+    #     name: "{{ item }}"
+    #     update_cache: yes
+    #   with_items:
+    #     - "tomcat8=8.0.32-1ubuntu1.3~ppa2"
+    #     - "tomcat8-common=8.0.32-1ubuntu1.3~ppa2"
+    #     - "libtomcat8-java=8.0.32-1ubuntu1.3~ppa2"
+
+    - name: Update repositories cache and install XWiki version "{{xwiki_version}}"
+      apt:
+        name: "{{ item }}"
+        update_cache: yes
+      with_items:
+        - "{{ java_version }}"
+        - "xwiki-{{ tomcat_version }}-common={{ xwiki_version }}"
+
+    - name: Install the apache2 web server with needed modules
+      apt:
+        name: "{{item}}"
+      with_items:
+        - apache2
+        - libapache2-mod-jk
+
+    - name: Install LibreOffice package
+      apt:
+        name: libreoffice
+
+    # - name: Install the LetsEncrypt package and apache2 plugin
+    #   apt:
+    #     name: "{{ item }}"
+    #   with_items:
+    #     - letsencrypt
+    #     - python-letsencrypt-apache
+
+    - name: Ensure libsemanage-python is installed
+      yum: name=libsemanage-python state=present
+      when: ansible_os_family == "RedHat" and ansible_selinux.status == "enabled"
+
+    - name: Ensure libsemanage-python is installed
+      apt: name=libsemanage-python state=present
+      when: ansible_os_family == "Debian" and ansible_selinux.status == "enabled"

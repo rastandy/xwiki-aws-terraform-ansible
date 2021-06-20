@@ -1,0 +1,35 @@
+---
+xwiki_debug: false
+
+servername: "xwiki.vagrant.test"
+administrator_email: "root@example.org"
+
+xwiki_clojure_version: 1.8.0
+riemann_version: 0.2.10
+
+xwiki_user: xwiki
+xwiki_group: xwiki
+
+xwiki_validation_key: ""
+xwiki_encryption_key: ""
+
+xwiki_mail_from: "no-reply@example.org"
+xwiki_database_user_pass: "mydatabasepassword"
+postfix_hostname: "{{ servername }}"
+postfix_relayhost: "smtp.example.org"
+postfix_relayhost_port: "587"
+postfix_sasl_user: "test"
+postfix_sasl_domain: "example.org"
+postfix_sasl_password: "mysasluserpassword"
+postfix_tls_support: "yes"
+bacula_password: "mybaculapassword"
+
+xwiki_apache_service: false
+xwiki_monitoring_service: false
+xwiki_backup_service: false
+xwiki_bacula_service: false
+xwiki_libreoffice_service: false
+xwiki_firewall_service: false
+xwiki_postfix_service: false
+xwiki_colojure_scripting: false
+xwiki_plugin_excel: false

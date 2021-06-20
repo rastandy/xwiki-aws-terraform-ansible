@@ -1,0 +1,51 @@
+{
+    "project": "my-project",
+    "service": "xwiki",
+
+    "xwiki_debug": "true",
+
+    "aws_region": "eu-central-1",
+    "ec2_instance_type": "t2.small",
+    "db_instance_type": "db.t2.micro",
+
+    "xwiki_permanent_directory_snapshot_id": "",
+    "xwiki_db_snapshot_id": "",
+
+    "ec2_key_file": "~/.ssh/id_rsa.pub",
+
+    "servername": "xwiki.mydomain.org",
+
+    "xwiki_version": "12.10.8",
+
+    "xwiki_ami": "ami-0b804d6af2c413fcf",
+
+    "tomcat_version": "tomcat8",
+    "xwiki_tomcat_memory": "1280m",
+    "xwiki_store_attachment_hint": "file",
+    "xwiki_permanent_directory_volume_size": "3",
+
+    "xwiki_database_port": "5432",
+    "xwiki_database": "xwiki",
+    "xwiki_database_user": "xwiki",
+    "db_allocated_storage": "5",
+
+    "xwiki_database_backup_retention_period": "30",
+
+    "xwiki_validation_key": "",
+    "xwiki_encryption_key": "",
+
+    "administrator_email": "admin@mydomain.org",
+
+    "xwiki_mail_from": "no-reply@mydomain.org",
+    "postfix_relayhost": "smtp.mydomain.org",
+    "postfix_relayhost_port": "587",
+    "postfix_sasl_user": "sasl_user",
+    "postfix_sasl_domain": "mydomain.org",
+    "postfix_tls_support": "yes",
+
+    "xwiki_apache_service": "true",
+    "xwiki_libreoffice_service": "true",
+    "xwiki_postfix_service": "true",
+    "xwiki_colojure_scripting": false,
+    "xwiki_plugin_excel": false
+}
