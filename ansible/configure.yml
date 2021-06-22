@@ -15,12 +15,17 @@
     state: present
   notify: Restart tomcat-xwiki
 
-- name: Download PostgreSQL JDBC Driver and install in Tomcat
-  get_url:
-    url: "{{ postgresql_jdbc_driver_url }}"
-    dest: "/usr/share/{{ tomcat_version }}/lib/{{ postgresql_jdbc_driver_filename }}"
-    sha256sum: "{{ postgresql_jdbc_driver_sha256sum }}"
+- name: Install PostgreSQL JDBC Driver
+  apt:
+    name: libpostgresql-jdbc-java
   notify: Restart tomcat-xwiki
+
+# - name: Download PostgreSQL JDBC Driver and install in Tomcat
+#   get_url:
+#     url: "{{ postgresql_jdbc_driver_url }}"
+#     dest: "/usr/share/{{ tomcat_version }}/lib/{{ postgresql_jdbc_driver_filename }}"
+#     checksum: "{{ postgresql_jdbc_driver_sha256sum }}"
+#   notify: Restart tomcat-xwiki
 
 - name: Configure PostgreSQL database connection for XWiki
   template:
